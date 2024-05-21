@@ -2,11 +2,17 @@ package org.ursus.security.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 @Service
@@ -16,7 +22,9 @@ public class JwtServiceImpl implements  JwtService {
 
     @Override
     public String extractUsername(String jwt) {
-        return "";
+        // we pass Claims::getSubject because in the application, the username (user email) is passed in the SUB
+        // field of JWT
+        return extractClaim(jwt,Claims::getSubject);
     }
 
     // extract a single claim that we pass
@@ -38,5 +46,25 @@ public class JwtServiceImpl implements  JwtService {
     private SecretKey getPublicSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(PublicKey);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    // generating a JWT token with provided additional information in claims map
+    public String generateToken(
+            Map<String,Object> extraClaims, // extra claims to pass any additional information like authorities etc...
+            UserDetails userDetails
+    ) {
+        return Jwts
+                .builder()
+                .signWith(getPublicSigningKey(), Jwts.SIG.HS256)
+                .claims().add(extraClaims)
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .and().compact();
+
+    }
+    // generating a JWT token without any additional claims
+    public String generateToken(UserDetails userDetails) {
+        return generateToken(new HashMap<>(), userDetails);
     }
 }
