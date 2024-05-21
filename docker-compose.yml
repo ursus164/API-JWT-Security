@@ -1,0 +1,23 @@
+services:
+  postgres:
+    container_name: postgres-Api-Jwt
+    image: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_DB: api_jwt_security
+    volumes:
+      - postgres:/data/postgres
+    ports:
+      - 5433:5432
+    networks:
+      - security-net
+    restart: unless-stopped
+
+networks:
+  security-net:
+    driver: bridge
+volumes:
+  postgres:
+    driver: local
