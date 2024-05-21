@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/api_jwt_security
+    url: jdbc:postgresql://localhost:5433/api_jwt_security
     username: admin
     password: admin
     driver-class-name: org.postgresql.Driver
@@ -15,3 +15,8 @@ spring:
 
 server:
   port: 8080
+
+application:
+  security:
+    jwt:
+      public-key: c98e8b0e60cbcdca38d874b289e6870935705a3e9339e41964fd8b988d9b495e
