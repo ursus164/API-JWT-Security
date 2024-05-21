@@ -67,4 +67,20 @@ public class JwtServiceImpl implements  JwtService {
     public String generateToken(UserDetails userDetails) {
         return generateToken(new HashMap<>(), userDetails);
     }
+
+    // Check whether a provided JWT is valid - that means it belongs to the issuing user, and it is not expired
+    public boolean isTokenValid(String jwt, UserDetails userDetails) {
+        // UserDetails object is passed because we want to check whether the JWT belongs to that user or not
+        final String username = extractUsername(jwt);
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(jwt);
+    }
+
+    // Check if a provided JWT is expired - it can be done via extracting Expiration date from the claims itself.
+    private boolean isTokenExpired(String jwt) {
+        return extractExpirationDate(jwt).before(new Date());
+    }
+
+    private Date extractExpirationDate(String jwt) {
+        return extractClaim(jwt, Claims::getExpiration);
+    }
 }
