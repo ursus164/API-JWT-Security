@@ -5,9 +5,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -16,10 +18,10 @@ import java.io.IOException;
 @Service
 public class JwtAuthFilter extends OncePerRequestFilter {
     // filter will be executed for the every HTTP request
-    private final JwtService jwtService;
+    private final JwtServiceImpl jwtService;
     private final UserDetailsService userDetailsService;
 
-    public JwtAuthFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+    public JwtAuthFilter(JwtServiceImpl jwtService, UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
     }
@@ -49,9 +51,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             // The information about whether the user is authenticated is stored in the SecurityContextHolder.
             // If the getAuthentication() return null, that means the user is not yet authenticated / connected.
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            if(jwtService.isTokenValid(jwt, userDetails)) {
+                // token is valid
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                ); // needed to update security context holder
+                authToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)  // building details by provided data from the request
+                        // like session ID, and IP address - it is needed for the authentication token
+                );
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
 
-        };
-
+        }
+        filterChain.doFilter(request,response);
 
     }
 }
