@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,8 +34,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     )
             throws ServletException, IOException {
+
+        if(request.getServletPath().contains("/api/v1/auth")) {
+            // context path for the authentication where a JWT token is not expected
+            filterChain.doFilter(request,response);
+            return;
+        }
+
         // check if JWT is provided
-        final String authHeader = request.getHeader("Authorization");
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         // check if the JWT is provided, it should be in the request header, or else return
         if(authHeader == null || !authHeader.startsWith("Bearer ")) {
