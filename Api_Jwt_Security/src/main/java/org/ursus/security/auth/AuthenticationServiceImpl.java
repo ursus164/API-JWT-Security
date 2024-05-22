@@ -1,5 +1,7 @@
 package org.ursus.security.auth;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.ursus.security.auth.builder.AuthenticationResponseBuilder;
@@ -13,11 +15,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtServiceImpl jwtService;
+    pivate final AuthenticationManager authenticationManager;
 
-    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtServiceImpl jwtService) {
+    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtServiceImpl jwtService, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.authenticationManager = authenticationManager;
     }
 
 
@@ -41,5 +45,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        // AuthenticationManager Beans has method called Authenticate which allow us to authenticate a user based
+        // on username and password.
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                request.getEmail(),
+                request.getPassword()
+                )
+        );
+        // user is authenticated - credentials are correct
+        var user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow();
+
+        var jwt = jwtService.generateToken(user);
+        return new AuthenticationResponseBuilder()
+                .setJwt(jwt)
+                .build();
     }
 }
