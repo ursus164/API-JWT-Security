@@ -6,9 +6,15 @@ public class UserBuilder {
     private String lastname;
     private String email;
     private String password;
+    private Role role;
 
     public UserBuilder setId(Long id) {
         this.id = id;
+        return this;
+    }
+
+    public UserBuilder setRole(Role role) {
+        this.role = role;
         return this;
     }
 
