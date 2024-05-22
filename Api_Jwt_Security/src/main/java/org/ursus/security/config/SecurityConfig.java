@@ -33,7 +33,7 @@ public class SecurityConfig {
                 // they will not need any authentication to be executed
                 .authorizeHttpRequests(request ->
                         request.requestMatchers(
-                        "").permitAll()
+                        "/api/v1/auth/**").permitAll()
                         .anyRequest()   // but any other requests
                         .authenticated()) // should be authenticated
                 // user session should be stateless, that means we don't want to store the information about the session/

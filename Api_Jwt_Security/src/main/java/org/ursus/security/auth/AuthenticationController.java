@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 public class AuthenticationController {
+
     private final AuthenticationServiceImpl authenticationService;
 
     public AuthenticationController(AuthenticationServiceImpl authenticationService) {
